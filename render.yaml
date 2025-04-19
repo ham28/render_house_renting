@@ -1,0 +1,22 @@
+databases:
+  - name: house_renting_db
+    plan: free
+    databaseName: house_renting_pg_db
+    user: admin
+
+services:
+  - type: web
+    plan: free
+    name: house_renting
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "python -m gunicorn house_renting.asgi:application -k uvicorn.workers.UvicornWorker"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: house_renting_db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
