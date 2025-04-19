@@ -14,4 +14,5 @@ python manage.py makemigrations
 python manage.py migrate
 
 # load data from fixtures
-python manage.py loaddata fixtures/customUser.json
+python manage.py loaddata fixtures/customUser.json 
+python manage.py loaddata fixtures/Property.json 
