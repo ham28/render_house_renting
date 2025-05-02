@@ -4,7 +4,7 @@ from .mutations import CreateUser, LoginMutation
 
 class Mutation(graphene.ObjectType):
     add_user = CreateUser.Field()
-    login_mutaion = LoginMutation.Field()
+    login_mutation = LoginMutation.Field()
 
 
 # from .models import UserDevice
