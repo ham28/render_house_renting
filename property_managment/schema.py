@@ -98,7 +98,7 @@ class Query(graphene.ObjectType):
                 User = get_user_model()
                 owner = User.objects.get(id=user_id).owner
             if owner_id:
-                owner = Owner.objects.get(id=id)
+                owner = Owner.objects.get(id=owner_id)
             property = owner.properties.all()
 
             return property
