@@ -47,7 +47,6 @@ class CreateUser(graphene.Mutation):
         return CreateUser( user=user, success=True, message="User created successfully" )
 
 
-
 class LoginMutation(graphene.Mutation):
     class Arguments:
         email = graphene.String(required=True)
@@ -56,18 +55,31 @@ class LoginMutation(graphene.Mutation):
     access = graphene.String()
     refresh = graphene.String()
     user = graphene.Field(UserType)
-    message= graphene.String()
+    message = graphene.String()
 
     def mutate(self, info, email, password):
-
-        user_ = User.objects.get(email=email)
-        if not user_: raise User.DoesNotExist(f"User with email {email} does not exit")
+        try:
+            user_ = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise GraphQLError(f"User with email {email} does not exist")
 
         user = authenticate(username=user_.username, password=password)
         if user:
             refresh = RefreshToken.for_user(user)
-            return LoginMutation(access=str(refresh.access_token), refresh=str(refresh), user=user, message="Authenticated successfully")
-
+        
+            refresh['userId'] = str(user.id) 
+        
+            if hasattr(user, 'user_type'):
+                refresh['userType'] = user.user_type
+            else:
+                refresh['userType'] = user.user_type
+            
+            return LoginMutation(
+                access=str(refresh.access_token), 
+                refresh=str(refresh), 
+                user=user, 
+                message="Authenticated successfully"
+            )
 
         raise GraphQLError('Invalid credentials')
 

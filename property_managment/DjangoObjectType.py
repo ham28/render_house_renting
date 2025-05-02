@@ -1,3 +1,4 @@
+import graphene
 from graphene_django import DjangoObjectType
 from property_managment.models import Property, Tenant, Payment, LeaseContract, PropertyImages, Owner
 
@@ -36,6 +37,12 @@ class PropertyImageType(DjangoObjectType):
         model = PropertyImages
         fields = "__all__"
 
+    image_url = graphene.String()
+
+    def resolve_image_url(self, info):
+        if self.image:
+            return info.context.build_absolute_uri(self.image.url)
+        return None
 
 
 

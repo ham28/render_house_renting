@@ -169,7 +169,7 @@ class AddOwnerMutation(graphene.Mutation):
                 # Extract foreign key IDs
                 f_name = kwargs.get('f_name')
                 l_name = kwargs.get('l_name')
-                user = User.objects.create_user(username=f_name+l_name, password=kwargs.get('password'), email=kwargs.get('email'))
+                user = User.objects.create_user(username=f_name+l_name, password=kwargs.get('password'), email=kwargs.get('email'),  user_type=kwargs.get('type'))
                 # Create owner
                 owner = Owner.objects.create(f_name=f_name, l_name=l_name, type=kwargs.get('type'), phone=kwargs.get('phone'), email=kwargs.get('email'), region=kwargs.get('region'),district=kwargs.get('district'), commune=kwargs.get('commune'), quartier=kwargs.get('quartier'), address=kwargs.get('address'), user=user )
 

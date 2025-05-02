@@ -8,15 +8,15 @@ from .mutations import AddTenantMutation, AddPropertyMutation, AddOwnerMutation,
 import graphene
 from graphene_django import DjangoObjectType
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
 from .DjangoObjectType import TenantType, PropertyType, OwnerType, PropertyImageType, \
     PaymentType, LeaseContractType
-from .models import Tenant, Property, LeaseContract, Payment, Owner
+from .models import Tenant, Property, LeaseContract, Payment, Owner, PropertyImages
 
 
 # Assuming these types are already defined elsewhere in your code
-class PropertyImage:
-    pass
+
 
 
 class Query(graphene.ObjectType):
@@ -29,6 +29,7 @@ class Query(graphene.ObjectType):
     # Property queries
     properties = graphene.List( PropertyType, status=graphene.Boolean(), type=graphene.String(), search=graphene.String(), description="List all properties, optionally filtered by status, type, or search term" )
     property = graphene.Field( PropertyType, id=graphene.Int(required=True), description="Get a specific property by ID" )
+    my_property = graphene.List( PropertyType, user_id=graphene.Int(required=False), owner_id=graphene.Int(required=False),description="Get a list of property related to a Owner" )
 
     # Owner queries
     owners = graphene.List( OwnerType, type=graphene.String(), search=graphene.String(), description="List all owners, optionally filtered by type or search term" )
@@ -91,6 +92,20 @@ class Query(graphene.ObjectType):
 
         return queryset
 
+    def resolve_my_property(self, info, user_id=None, owner_id=None):
+        try:
+            if user_id:
+                User = get_user_model()
+                owner = User.objects.get(id=user_id).owner
+            if owner_id:
+                owner = Owner.objects.get(id=id)
+            property = owner.properties.all()
+
+            return property
+
+        except Owner.DoesNotExist:
+            return None
+
     def resolve_property(self, info, id):
         try:
             return Property.objects.get(id=id)
@@ -125,7 +140,7 @@ class Query(graphene.ObjectType):
 
     # Property Image resolver methods
     def resolve_property_images(self, info, property_id=None):
-        queryset = PropertyImage.objects.all()
+        queryset = PropertyImages.objects.all()
 
         if property_id:
             queryset = queryset.filter(property_id=property_id)
@@ -134,8 +149,8 @@ class Query(graphene.ObjectType):
 
     def resolve_property_image(self, info, id):
         try:
-            return PropertyImage.objects.get(id=id)
-        except PropertyImage.DoesNotExist:
+            return PropertyImages.objects.get(id=id)
+        except PropertyImages.DoesNotExist:
             return None
 
     # Payment resolver methods
