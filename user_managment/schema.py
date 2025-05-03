@@ -1,10 +1,13 @@
 import graphene
+from django.contrib.auth import get_user_model
+
+from .djangoObjectType import UserType
 from .mutations import CreateUser, LoginMutation
 
 
 class Mutation(graphene.ObjectType):
     add_user = CreateUser.Field()
-    login_mutation = LoginMutation.Field()
+    login_mutaion = LoginMutation.Field()
 
 
 # from .models import UserDevice
@@ -85,8 +88,14 @@ class Mutation(graphene.ObjectType):
 #             raise graphene.GraphQLError('Error creating user')
 #
 #
-# class Query(graphene.ObjectType):
-#     users = graphene.List(UserType)
+class Query(graphene.ObjectType):
+    users = graphene.List(UserType)
+
+    def resolve_users(self, info):
+        User = get_user_model()
+        return User.objects.all()
+
+
 #     me = graphene.Field(UserType)
 #     check_device_status = graphene.Field(
 #         graphene.Boolean,
@@ -97,9 +106,8 @@ class Mutation(graphene.ObjectType):
 #     validate_token = graphene.Field(AuthResponse)
 #     user = graphene.Field(UserType, id=graphene.String(required=True))
 #
-#     @login_required
-#     def resolve_users(self, info):
-#         return User.objects.all()
+
+
 #
 #     @login_required
 #     def resolve_me(self, info):

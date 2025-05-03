@@ -7,13 +7,13 @@ from django.db import models
 '''
 
 class CustomUser(AbstractUser):
-
     groups = models.ManyToManyField( 'auth.Group', related_name='custom_user_set', blank=True, verbose_name='groups',  help_text='The groups this user belongs to.' )
     user_permissions = models.ManyToManyField( 'auth.Permission', related_name='custom_user_set', blank=True, verbose_name='user permissions', help_text='Specific permissions for this user.' )
-
     user_type =  models.CharField(max_length=100, blank=True)
-    fonction = models.CharField(max_length=100, blank=True)
+    function = models.CharField(max_length=100, blank=True)
     telephone = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(unique=True)
+
     # Add any additional fields you want here
     @property
     def devices(self):

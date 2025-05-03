@@ -1,3 +1,5 @@
+import logging
+
 import graphene
 
 from .models import Property, Tenant, Owner
@@ -13,9 +15,13 @@ from django.contrib.auth import get_user_model
 from .DjangoObjectType import TenantType, PropertyType, OwnerType, PropertyImageType, \
     PaymentType, LeaseContractType
 from .models import Tenant, Property, LeaseContract, Payment, Owner, PropertyImages
+from django.db.models import Q
 
+from .utils import get_region
 
 # Assuming these types are already defined elsewhere in your code
+
+logger = logging.getLogger("django")
 
 
 
@@ -30,6 +36,8 @@ class Query(graphene.ObjectType):
     properties = graphene.List( PropertyType, status=graphene.Boolean(), type=graphene.String(), search=graphene.String(), description="List all properties, optionally filtered by status, type, or search term" )
     property = graphene.Field( PropertyType, id=graphene.Int(required=True), description="Get a specific property by ID" )
     my_property = graphene.List( PropertyType, user_id=graphene.Int(required=False), owner_id=graphene.Int(required=False),description="Get a list of property related to a Owner" )
+    property_by = graphene.List(PropertyType, province_=graphene.String(required=False), region_=graphene.String(required=False),
+                  description="Get a list of property related to a Region or Province")
 
     # Owner queries
     owners = graphene.List( OwnerType, type=graphene.String(), search=graphene.String(), description="List all owners, optionally filtered by type or search term" )
@@ -111,6 +119,28 @@ class Query(graphene.ObjectType):
             return Property.objects.get(id=id)
         except Property.DoesNotExist:
             return None
+
+    def resolve_property_by(self, info, province_=None, region_=None):
+
+        try:
+            properties = None
+            if province_:
+                regions = get_region(province_)
+                query = Q()
+                for region in regions:
+                    query |= Q(region__iexact=region)
+                properties = Property.objects.filter(query)
+
+            if region_:
+                properties = Property.objects.filter(region__iexact=region_)
+            return properties
+
+        except Exception as e:
+            logger.info(f"Exception while reading Property By(Province or Region) {e}")
+            logger.debug(f"Exception while reading Property By(Province or Region) {e}")
+            raise Exception(f"Exception while reading Property By(Province or Region) {e}")
+            return None
+
 
     # Owner resolver methods
     def resolve_owners(self, info, type=None, search=None):
