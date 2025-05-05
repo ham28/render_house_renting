@@ -1,1 +1,1 @@
-[{"model": "property_managment.owner", "pk": 1, "fields": {"name": "RANDRIANIRINA Rolland", "f_name": "RANDRIANIRINA", "l_name": "Rolland", "type": "owner", "phone": "0348956213", "email": "randrianirina@gmail.com", "region": null, "district": null, "commune": null, "quartier": null, "address": null, "user": 1}}]
+[{"model": "property_managment.owner", "pk": 2, "fields": {"type": "default", "phone": null, "region": "Haute Mahatsiatra", "district": "Fianarantsoa", "commune": "Fianarantsoa", "quartier": "Andohan'Ivory", "address": "Fianarantsoa"}}]
