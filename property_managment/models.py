@@ -1,8 +1,6 @@
 from django.db import models
 
 import re
-from user_managment.models import CustomUser
-
 # Create your models here.
 
 """
@@ -11,31 +9,18 @@ Table des Propriétaires
 
 
 class Owner(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-    f_name = models.CharField(max_length=255, blank=True, null=True)
-    l_name = models.CharField(max_length=255, blank=True, null=True)
     type = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=255, blank=True, null=True)
-    email = models.CharField(unique=True, max_length=255, blank=True, null=True)
 
     region = models.CharField(max_length=255, blank=True, null=True)
     district = models.CharField(max_length=255, blank=True, null=True)
     commune = models.CharField(max_length=255, blank=True, null=True)
     quartier = models.CharField(max_length=255, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
-    # Foreign key
-    user = models.OneToOneField(CustomUser, on_delete=models.DO_NOTHING, related_name='owner', null=True, blank=True)
-
-    def save(self, *args, force_insert=False, force_update=False, using=None, update_fields=None, ):
-        if not self.name:
-            self.name = f"{self.f_name} {self.l_name}"
-
-        # Call the parent class's save method to actually save the object
-        super().save(*args, force_insert=False, force_update=False, using=None, update_fields=None)
 
 
     def __str__(self):
-        return self.name or self.f_name or self.l_name
+        return self.phone
 
 """
 Table des Propriétés (ou Biens Immobiliers)
@@ -84,17 +69,19 @@ Table des Locataires
 
 
 class Tenant(models.Model):
-    f_name = models.CharField(max_length=255, blank=True, null=True)
-    l_name = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=255, blank=True, null=True)
-    email = models.EmailField()
     rent_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=255, blank=True, null=True)
     payment_deposit = models.DecimalField(max_digits=10, decimal_places=2)
     guarantor = models.CharField(max_length=255, blank=True, null=True)
 
+    # Address information
+    region = models.CharField(max_length=255, blank=True, null=True)
+    district = models.CharField(max_length=255, blank=True, null=True)
+    commune = models.CharField(max_length=255, blank=True, null=True)
+    quartier = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
     current_address = models.CharField(max_length=255, blank=True, null=True)
-
+    # Foreign key
 
 class PropertyImages(models.Model):
     description = models.TextField(blank=True, null=True)

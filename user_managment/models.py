@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from property_managment.models import Owner, Tenant
 
 '''
 ' Custom User Model
@@ -11,8 +12,14 @@ class CustomUser(AbstractUser):
     user_permissions = models.ManyToManyField( 'auth.Permission', related_name='custom_user_set', blank=True, verbose_name='user permissions', help_text='Specific permissions for this user.' )
     user_type =  models.CharField(max_length=100, blank=True)
     function = models.CharField(max_length=100, blank=True)
+    f_name = models.CharField(max_length=255)
+    l_name = models.CharField(max_length=255)
+
     telephone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(unique=True)
+    # Foreign key
+    owner = models.OneToOneField(Owner, on_delete=models.CASCADE, unique=True, blank=True, null=True, related_name="user")
+    tenant = models.OneToOneField(Tenant, on_delete=models.CASCADE, unique=True, blank=True, null=True, related_name="user")
 
     # Add any additional fields you want here
     @property

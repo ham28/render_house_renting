@@ -34,7 +34,7 @@ class Query(graphene.ObjectType):
 
     # Property queries
     properties = graphene.List( PropertyType, status=graphene.Boolean(), type=graphene.String(), search=graphene.String(), description="List all properties, optionally filtered by status, type, or search term" )
-    property = graphene.Field( PropertyType, id=graphene.Int(required=True), description="Get a specific property by ID" )
+    property = graphene.Field( PropertyType, id=graphene.Int(required=False), announcement_type=graphene.String(required=False) , description="Get a specific property by ID" )
     my_property = graphene.List( PropertyType, user_id=graphene.Int(required=False), owner_id=graphene.Int(required=False),description="Get a list of property related to a Owner" )
     property_by = graphene.List(PropertyType, province_=graphene.String(required=False), region_=graphene.String(required=False),
                   description="Get a list of property related to a Region or Province")
@@ -114,10 +114,14 @@ class Query(graphene.ObjectType):
         except Owner.DoesNotExist:
             return None
 
-    def resolve_property(self, info, id):
+    def resolve_property(self, info, id=None, announcement_type=None):
         try:
-            return Property.objects.get(id=id)
+            if id:
+                return Property.objects.get(id=id)
+            elif announcement_type:
+                return Property.objects.get(announcement_type__iexact=announcement_type)
         except Property.DoesNotExist:
+            logger.info(f"Property DoesNotExist(Province or Region) {id} {announcement_type}")
             return None
 
     def resolve_property_by(self, info, province_=None, region_=None):
@@ -137,7 +141,6 @@ class Query(graphene.ObjectType):
 
         except Exception as e:
             logger.info(f"Exception while reading Property By(Province or Region) {e}")
-            logger.debug(f"Exception while reading Property By(Province or Region) {e}")
             raise Exception(f"Exception while reading Property By(Province or Region) {e}")
             return None
 

@@ -17,34 +17,43 @@ from django.contrib.auth import get_user_model, authenticate
 
 import graphene
 from .djangoObjectType import UserType
+
 User = get_user_model()
 
 
 class CreateUser(graphene.Mutation):
     class Arguments:
-        username = graphene.String(required=True)
+        # Personal information
+        f_name = graphene.String(required=True, description="First name of tenant")
+        l_name = graphene.String(required=True, description="Last name of tenant")
+        telephone = graphene.String(required=True, description="Phone number of tenant")
+
+        username = graphene.String(required=False)
         password = graphene.String(required=True)
         email = graphene.String(required=True)
-
 
     # Return fields
     user = graphene.Field(UserType, description="The newly created User")
     success = graphene.Boolean(description="Whether the mutation was successful")
     message = graphene.String(description="Success or error message")
-    def mutate(self, info, username, password, email,):
+
+    def mutate(self, info, **kwargs):
         try:
             user = User.objects.create_user(
-                username=username,
-                password=password,
-                email=email
+                f_name=kwargs.get('f_name'),
+                l_name=kwargs.get('l_name'),
+                telephone=kwargs.get('telephone'),
+                username=kwargs.get('username'),
+                password=kwargs.get('password'),
+                email=kwargs.get('email')
             )
-        except IntegrityError as e :
+        except IntegrityError as e:
             if 'UNIQUE constraint failed' in str(e):
-                raise GraphQLError(f" Integrity Error {e} Username {username} ")
+                raise GraphQLError(f" Integrity Error {e} Username {email} ")
             else:
                 raise GraphQLError("An error occurred while creating the User.")
 
-        return CreateUser( user=user, success=True, message="User created successfully" )
+        return CreateUser(user=user, success=True, message="User created successfully")
 
 
 class LoginMutation(graphene.Mutation):
@@ -66,20 +75,19 @@ class LoginMutation(graphene.Mutation):
         user = authenticate(username=user_.username, password=password)
         if user:
             refresh = RefreshToken.for_user(user)
-        
-            refresh['userId'] = str(user.id) 
-        
+
+            refresh['userId'] = str(user.id)
+
             if hasattr(user, 'user_type'):
                 refresh['userType'] = user.user_type
             else:
                 refresh['userType'] = user.user_type
-            
+
             return LoginMutation(
-                access=str(refresh.access_token), 
-                refresh=str(refresh), 
-                user=user, 
+                access=str(refresh.access_token),
+                refresh=str(refresh),
+                user=user,
                 message="Authenticated successfully"
             )
 
         raise GraphQLError('Invalid credentials')
-

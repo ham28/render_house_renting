@@ -1,16 +1,15 @@
+import logging
 import graphene
+from graphql import GraphQLError
+from graphene_file_upload.scalars import Upload
+
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from .DjangoObjectType import PropertyType, TenantType, OwnerType, PropertyImageType, \
     PaymentType, LeaseContractType
 from .models import Property, Tenant, Owner, PropertyImages, Payment, LeaseContract
-from graphene_file_upload.scalars import Upload
-
-from user_managment.models import CustomUser
-import logging
-from django.contrib.auth import get_user_model
-
 from user_managment.djangoObjectType import UserType
 
 logger = logging.getLogger(__name__)
@@ -87,12 +86,6 @@ class AddPropertyMutation(graphene.Mutation):
 
 class AddTenantMutation(graphene.Mutation):
     class Arguments:
-        # Personal information
-        f_name = graphene.String(required=True, description="First name of tenant")
-        l_name = graphene.String(required=True, description="Last name of tenant")
-        phone = graphene.String(required=True, description="Phone number of tenant")
-        email = graphene.String(required=True, description="Email address of tenant")
-
         # Financial information
         rent_amount = graphene.Decimal(required=True, description="Monthly rent amount")
         payment_method = graphene.String(required=True, description="Method of payment")
@@ -105,7 +98,10 @@ class AddTenantMutation(graphene.Mutation):
         commune = graphene.String(required=True, description="Commune/city")
         quartier = graphene.String(required=True, description="Neighborhood/quarter")
         address = graphene.String(required=True, description="Street address")
+        # Foreign key
+        user_id = graphene.String( required=True, description="Id of the user")
 
+    user = graphene.Field(UserType, description="The newly created User")
     tenant = graphene.Field(TenantType, description="The newly created tenant")
     success = graphene.Boolean(description="Whether the mutation was successful")
     message = graphene.String(description="Success or error message")
@@ -115,13 +111,11 @@ class AddTenantMutation(graphene.Mutation):
         try:
             # Create and save address within a transaction
             with transaction.atomic():
+                User = get_user_model()
+                user = User.objects.get(id=kwargs.get('user_id'))
 
                 # Create and save tenant
-                tenant = Tenant(
-                    f_name=kwargs.get('f_name'),
-                    l_name=kwargs.get('l_name'),
-                    phone=kwargs.get('phone'),
-                    email=kwargs.get('email'),
+                tenant = Tenant.objects.create(
                     rent_amount=kwargs.get('rent_amount'),
                     payment_method=kwargs.get('payment_method'),
                     payment_deposit=kwargs.get('payment_deposit'),
@@ -132,13 +126,14 @@ class AddTenantMutation(graphene.Mutation):
                     quartier=kwargs.get('quartier'),
                     address=kwargs.get('address')
                 )
-                tenant.save()
+                user.objects.update(tenant = tenant)
 
-                return AddTenantMutation( tenant=tenant, success=True, message="Tenant added successfully" )
 
+                return AddTenantMutation( tenant=tenant, user= user, success=True, message="Tenant added successfully" )
+        except User.DoesNotExist:
+            raise GraphQLError(f"User with ID {kwargs.get('user_id')} does not exist.")
         except ValidationError as e:
             return AddTenantMutation( tenant=None, success=False, message=f"Validation error: {str(e)}" )
-
         except Exception as e:
             # logger.error(f"Error creating tenant: {str(e)}")
             return AddTenantMutation( tenant=None, success=False, message=f"An error occurred: {str(e)}" )
@@ -146,14 +141,14 @@ class AddTenantMutation(graphene.Mutation):
 
 class AddOwnerMutation(graphene.Mutation):
     class Arguments:
-        password = graphene.String(required=True, description="User Password")
-        email = graphene.String(required=True, description="User Email")
-        f_name = graphene.String(required=True, description="First name of Owner")
-        l_name = graphene.String(required=True, description="Last name of Owner")
-        type = graphene.String(required=True, description="Type of Owner")
-        phone = graphene.String(required=True, description="Phone number of Owner")
-        email = graphene.String(required=True, description="Email of Owner")
+        type = graphene.String(required=True, description="Type of Owner")        # Address information
+        region = graphene.String(required=True, description="Region/state")
+        district = graphene.String(required=True, description="District")
+        commune = graphene.String(required=True, description="Commune/city")
+        quartier = graphene.String(required=True, description="Neighborhood/quarter")
+        address = graphene.String(required=True, description="Street address")
         # Foreign key
+        user_id = graphene.String( required=True, description="Id of the user")
 
     # Return fields
     user = graphene.Field(UserType, description="The newly created User")
@@ -166,15 +161,23 @@ class AddOwnerMutation(graphene.Mutation):
         try:
             with transaction.atomic():
                 User = get_user_model()
+                user = User.objects.get(id=kwargs.get('user_id'))
                 # Extract foreign key IDs
-                f_name = kwargs.get('f_name')
-                l_name = kwargs.get('l_name')
-                user = User.objects.create_user(username=f_name+l_name, password=kwargs.get('password'), email=kwargs.get('email'),  user_type=kwargs.get('type'))
-                # Create owner
-                owner = Owner.objects.create(f_name=f_name, l_name=l_name, type=kwargs.get('type'), phone=kwargs.get('phone'), email=kwargs.get('email'), region=kwargs.get('region'),district=kwargs.get('district'), commune=kwargs.get('commune'), quartier=kwargs.get('quartier'), address=kwargs.get('address'), user=user )
+                owner = Owner.objects.create(
+                    type=kwargs.get('type'),
+                    region=kwargs.get('region'),
+                    district=kwargs.get('district'),
+                    commune=kwargs.get('commune'),
+                    quartier=kwargs.get('quartier'),
+                    address=kwargs.get('address')
+                )
 
-                return AddOwnerMutation( owner=owner,user = user, success=True, message="Owner created successfully" )
+                user.owner = owner
+                user.save()
 
+                return AddOwnerMutation( owner=owner, user = user, success=True, message="Owner created successfully" )
+        except User.DoesNotExist:
+            raise GraphQLError(f"User with ID {kwargs.get('user_id')} does not exist.")
         except ValidationError as e:
             return AddOwnerMutation( owner=None, user = None, success=False, message=f"Validation error: {str(e)}" )
         except Exception as e:
