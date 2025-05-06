@@ -20,7 +20,9 @@ class Owner(models.Model):
 
 
     def __str__(self):
-        return self.phone
+        return self.user.f_name
+
+
 
 """
 Table des Propriétés (ou Biens Immobiliers)
@@ -54,7 +56,7 @@ class Property(models.Model):
         label = re.findall(r'#\w+', str(self.description))
         self.label = str(label)
         if not self.name:
-            self.name = f"{self.type} {self.owner.name}"
+            self.name = f"{self.property_type} {self.owner.user.f_name}"
 
         # Call the parent class's save method to actually save the object
         super().save(*args, force_insert=False, force_update=False, using=None, update_fields=None)
