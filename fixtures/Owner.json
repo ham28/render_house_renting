@@ -1,1 +1,1 @@
-[{"model": "property_managment.owner", "pk": 2, "fields": {"type": "default", "phone": null, "region": "Haute Mahatsiatra", "district": "Fianarantsoa", "commune": "Fianarantsoa", "quartier": "Andohan'Ivory", "address": "Fianarantsoa"}}]
+[{"model": "property_managment.owner", "pk": 1, "fields": {"name": "Mathias", "type": "Owner", "phone": "0348110960", "region": null, "district": null, "commune": "MORONDAVA", "quartier": null, "address": "NAMAHORA SUD"}}]

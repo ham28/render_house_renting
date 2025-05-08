@@ -9,6 +9,7 @@ Table des Propriétaires
 
 
 class Owner(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
     type = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=255, blank=True, null=True)
 
@@ -20,7 +21,7 @@ class Owner(models.Model):
 
 
     def __str__(self):
-        return self.user.f_name
+        return self.name
 
 
 
