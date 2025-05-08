@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from property_managment.models import Owner, Tenant
 
 '''
 ' Custom User Model
@@ -18,8 +17,8 @@ class CustomUser(AbstractUser):
     telephone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(unique=True)
     # Foreign key
-    owner = models.OneToOneField(Owner, on_delete=models.CASCADE, unique=True, blank=True, null=True, related_name="user")
-    tenant = models.OneToOneField(Tenant, on_delete=models.CASCADE, unique=True, blank=True, null=True, related_name="user")
+    owner = models.OneToOneField('property_managment.Owner', on_delete=models.CASCADE, unique=True, blank=True, null=True, related_name="user")
+    tenant = models.OneToOneField('property_managment.Tenant', on_delete=models.CASCADE, unique=True, blank=True, null=True, related_name="user")
 
     # Add any additional fields you want here
     @property

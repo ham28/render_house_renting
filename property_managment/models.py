@@ -1,5 +1,5 @@
+import datetime
 from django.db import models
-
 import re
 # Create your models here.
 
@@ -104,8 +104,6 @@ class File(models.Model):
 """
 Table des Paiements
 """
-
-
 class Payment(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField()
@@ -135,3 +133,11 @@ class LeaseContract(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Like:
+
+    # Foreign key
+    user = models.ForeignKey('user_managment.CustomUser', on_delete=models.DO_NOTHING)
+    property = models.ForeignKey(Property, on_delete=models.DO_NOTHING)
+    created_at = models.DateTimeField(default=datetime.datetime.now)

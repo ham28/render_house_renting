@@ -344,3 +344,73 @@ class AddLeaseContractMutation(graphene.Mutation):
         except Exception as e:
             # logger.error(f"Error creating lease contract: {str(e)}")
             return AddLeaseContractMutation( lease_contract=None, success=False, message=f"An error occurred: {str(e)}" )
+
+class AddLikeMutation(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.Int(required=True, description="ID of the user who liked the property")
+        property_id = graphene.Int(required=True, description="ID of the property liked")
+
+    # Return fields
+    success = graphene.Boolean(description="Whether the mutation was successful")
+    message = graphene.String(description="Success or error message")
+
+
+    @classmethod
+    def mutate(cls, root, info, **kwargs):
+        try:
+            with transaction.atomic():
+                # Extract foreign key IDs
+                tenant_id = kwargs.get('tenant_id')
+                property_id = kwargs.get('property_id')
+
+                # Validate tenant exists
+                try:
+                    tenant = Tenant.objects.get(id=tenant_id)
+                except Tenant.DoesNotExist:
+                    return AddLeaseContractMutation( lease_contract=None, success=False, message=f"Tenant with ID {tenant_id} does not exist" )
+
+                # Validate property exists
+                try:
+                    property_obj = Property.objects.get(id=property_id)
+                except Property.DoesNotExist:
+                    return AddLeaseContractMutation( lease_contract=None, success=False, message=f"Property with ID {property_id} does not exist" )
+
+                # Validate lease dates
+                lease_start_date = kwargs.get('lease_start_date')
+                lease_end_date = kwargs.get('lease_end_date')
+                if lease_start_date and lease_end_date and lease_start_date > lease_end_date:
+                    return AddLeaseContractMutation( lease_contract=None, success=False, message="Lease start date cannot be after end date" )
+
+                # Check if tenant or property already has an active lease
+                existing_tenant_lease = LeaseContract.objects.filter(
+                    tenant=tenant,
+                    contract_status=True
+                ).first()
+
+                if existing_tenant_lease:
+                    return AddLeaseContractMutation( lease_contract=None, success=False, message=f"Tenant already has an active lease contract (ID: {existing_tenant_lease.id})" )
+
+                existing_property_lease = LeaseContract.objects.filter( property=property_obj, contract_status=True ).first()
+
+                if existing_property_lease:
+                    return AddLeaseContractMutation( lease_contract=None, success=False, message=f"Property already has an active lease contract (ID: {existing_property_lease.id})" )
+
+                # Create lease contract
+                lease_contract = LeaseContract.objects.create(
+                    name=kwargs.get('name'),
+                    lease_start_date=lease_start_date,
+                    lease_end_date=lease_end_date,
+                    rent_amount=kwargs.get('rent_amount'),
+                    contract_status=kwargs.get('contract_status', True),
+                    rules=kwargs.get('rules'),
+                    tenant=tenant,
+                    property=property_obj
+                )
+
+                return AddLeaseContractMutation( lease_contract=lease_contract, success=True, message="Lease contract created successfully" )
+
+        except ValidationError as e:
+            return AddLeaseContractMutation( lease_contract=None, success=False, message=f"Validation error: {str(e)}" )
+        except Exception as e:
+            # logger.error(f"Error creating lease contract: {str(e)}")
+            return AddLeaseContractMutation( lease_contract=None, success=False, message=f"An error occurred: {str(e)}" )
