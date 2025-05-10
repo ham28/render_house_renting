@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 
 from .mutations import AddTenantMutation, AddPropertyMutation, AddOwnerMutation, \
-    AddPropertyImagesMutation, AddPaymentMutation, AddLeaseContractMutation
+    AddPropertyImagesMutation, AddPaymentMutation, AddLeaseContractMutation, AddReactMutation
 from .DjangoObjectType import TenantType, PropertyType, OwnerType, PropertyImageType, \
     PaymentType, LeaseContractType
 from .models import Tenant, Property, LeaseContract, Payment, Owner, PropertyImages
@@ -256,6 +256,7 @@ class Mutation(graphene.ObjectType):
     add_property_image = AddPropertyImagesMutation.Field()
     add_payment = AddPaymentMutation.Field()
     add_leaser_contract = AddLeaseContractMutation.Field()
+    react = AddReactMutation.Field()
 
 
 

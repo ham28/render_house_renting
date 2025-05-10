@@ -135,9 +135,9 @@ class LeaseContract(models.Model):
         return self.name
 
 
-class Like:
-
+class React(models.Model):
+    like = models.BooleanField(default=True)
     # Foreign key
-    user = models.ForeignKey('user_managment.CustomUser', on_delete=models.DO_NOTHING)
-    property = models.ForeignKey(Property, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey('user_managment.CustomUser', on_delete=models.DO_NOTHING, related_name='reaction')
+    property = models.ForeignKey(Property, on_delete=models.DO_NOTHING, related_name='reaction')
     created_at = models.DateTimeField(default=datetime.datetime.now)

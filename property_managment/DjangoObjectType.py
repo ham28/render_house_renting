@@ -1,6 +1,6 @@
 import graphene
 from graphene_django import DjangoObjectType
-from property_managment.models import Property, Tenant, Payment, LeaseContract, PropertyImages, Owner
+from property_managment.models import Property, Tenant, Payment, LeaseContract, PropertyImages, Owner, React
 
 
 class PropertyType(DjangoObjectType):
@@ -44,6 +44,11 @@ class PropertyImageType(DjangoObjectType):
             return info.context.build_absolute_uri(self.image.url)
         return None
 
+
+class ReactType(DjangoObjectType):
+    class Meta:
+        model = React
+        fields = "__all__"
 
 
 
